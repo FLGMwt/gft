@@ -2,13 +2,14 @@
 
 const axios = require('axios');
 const { RegistryClient } = require('package-metadata');
+const octokit = require('@octokit/rest')();
 
 const { promisify } = require('util');
 const fs = require('fs');
 const readFileAsync = promisify(fs.readFile);
 
 // ["github.com/axios/axios.git", "/", "axios", "axios"]
-// [, , organization, project]
+// [, , owner, repo]
 const repositoryPattern = /github\.com(\/|:)(.*)\/(.*)\.git/;
 
 function error(message) {
@@ -42,8 +43,8 @@ async function getRepositoryForPackage(packageName) {
   const match = repository.url.match(repositoryPattern);
   if (!match) return null;
 
-  const [, , githubOrg, githubProject] = match;
-  return { githubOrg, githubProject };
+  const [, , owner, repo] = match;
+  return { owner, repo };
 }
 
 async function getDependencyWithRepo(dependency) {
@@ -58,16 +59,22 @@ async function getDependencyWithRepo(dependency) {
 async function run() {
   const contents = await getContents();
 
-  const json = JSON.parse(contents);
+  // const json = JSON.parse(contents);
 
-  const dependencies = [
-    ...modelDependencies(json, 'dependencies'),
-    ...modelDependencies(json, 'devDependencies'),
-    ...modelDependencies(json, 'peerDependnecies'),
-  ];
+  // const dependencies = [
+  //   ...modelDependencies(json, 'dependencies'),
+  //   ...modelDependencies(json, 'devDependencies'),
+  //   ...modelDependencies(json, 'peerDependnecies'),
+  // ];
 
-  const foo = await Promise.all(dependencies.map(getDependencyWithRepo));
-  console.log({ foo });
+  // const foo = await Promise.all(dependencies.map(getDependencyWithRepo));
+
+  const { data } = await octokit.issues.getForRepo({
+    owner: 'facebook',
+    repo: 'react-native',
+    labels: ['Good first issue'],
+  });
+  console.log(data[0]);
 }
 
 run();

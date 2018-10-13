@@ -9,6 +9,7 @@
     "gft": "./index.js"
   },
   "dependencies": {
+    "@octokit/rest": "^15.13.1",
     "axios": "^0.18.0",
     "commander": "^2.19.0",
     "package-metadata": "^1.1.2"
