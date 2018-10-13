@@ -7,6 +7,10 @@ const { promisify } = require('util');
 const fs = require('fs');
 const readFileAsync = promisify(fs.readFile);
 
+// ["github.com/axios/axios.git", "/", "axios", "axios"]
+// [, , organization, project]
+const repositoryPattern = /github\.com(\/|:)(.*)\/(.*)\.git/;
+
 function error(message) {
   console.error(message);
   process.exit(1);
@@ -32,14 +36,26 @@ async function getRepositoryForPackage(packageName) {
     fullMetadata: true,
   });
 
-  console.log(metadata.versions.latest.repository);
+  const { repository } = metadata.versions.latest;
+  if (!repository || !repository.url) return null;
+
+  const match = repository.url.match(repositoryPattern);
+  if (!match) return null;
+
+  const [, , githubOrg, githubProject] = match;
+  return { githubOrg, githubProject };
+}
+
+async function getDependencyWithRepo(dependency) {
+  const repository = await getRepositoryForPackage(dependency.name);
+
+  return {
+    ...dependency,
+    repository,
+  };
 }
 
 async function run() {
-  // TODO: test getting version
-
-  // TODO: test getting GH issues
-  error('');
   const contents = await getContents();
 
   const json = JSON.parse(contents);
@@ -49,6 +65,9 @@ async function run() {
     ...modelDependencies(json, 'devDependencies'),
     ...modelDependencies(json, 'peerDependnecies'),
   ];
+
+  const foo = await Promise.all(dependencies.map(getDependencyWithRepo));
+  console.log({ foo });
 }
 
 run();
