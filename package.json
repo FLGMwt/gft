@@ -1,0 +1,8 @@
+{
+  "name": "gft",
+  "version": "0.0.1",
+  "description": "cli for discovering \"Good First Tasks\" in your package.json dependencies",
+  "main": "index.js",
+  "author": "Ryan Stelly",
+  "license": "MIT"
+}
